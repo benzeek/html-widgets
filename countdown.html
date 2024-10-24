@@ -5,54 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Countdown to 5:30 PM with Dark Mode</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="light-mode text-center">
+<body id="main-body" class="bg-light text-dark">
 
-    <div class="container">
-        <h1 class="display-4 mb-4">Time Until We Can Leave</h1>
-        <!-- Bootstrap Card to display the countdown -->
-        <div id="countdown" class="card p-4 mb-4">
-            Loading...
-        </div>
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">Countdown to 5:30 PM</h1>
+
         <!-- Dark mode toggle switch -->
         <button id="dark-mode-toggle" class="btn btn-secondary mb-4">Enable Dark Mode</button>
+
+        <div id="countdown" class="card p-4 mb-4 bg-light text-dark">
+            Loading...
+        </div>
     </div>
 
     <script>
-        // Function to switch between dark and light mode
+        // Function to switch between dark and light mode using Bootstrap classes
         function toggleDarkMode() {
-            const body = document.body;
+            const body = document.getElementById('main-body');
+            const card = document.getElementById('countdown');
             const toggleButton = document.getElementById('dark-mode-toggle');
-            
-            body.classList.toggle('dark-mode');
-            body.classList.toggle('light-mode');
-
-            // Update the button text
-            if (body.classList.contains('dark-mode')) {
+            body.classList.toggle('bg-dark');
+            body.classList.toggle('text-light');
+            body.classList.toggle('bg-light');
+            body.classList.toggle('text-dark');
+            card.classList.toggle('bg-dark');
+            card.classList.toggle('text-light');
+            card.classList.toggle('bg-light');
+            card.classList.toggle('text-dark');
+            if (body.classList.contains('bg-dark')) {
                 toggleButton.textContent = "Disable Dark Mode";
+                localStorage.setItem('theme', 'dark');
             } else {
                 toggleButton.textContent = "Enable Dark Mode";
+                localStorage.setItem('theme', 'light');
             }
-
-            // Save the user's preference in localStorage
-            const mode = body.classList.contains('dark-mode') ? 'dark' : 'light';
-            localStorage.setItem('theme', mode);
         }
 
         // Initialize the page based on the user's saved theme preference
         function initializeTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const body = document.body;
+            const savedTheme = localStorage.getItem('theme') || 'light';  // Default to 'light' if no theme is saved
+            const body = document.getElementById('main-body');
+            const card = document.getElementById('countdown');
+            const toggleButton = document.getElementById('dark-mode-toggle');
 
             if (savedTheme === 'dark') {
-                body.classList.remove('light-mode');
-                body.classList.add('dark-mode');
-                document.getElementById('dark-mode-toggle').textContent = "Disable Dark Mode";
+                body.classList.add('bg-dark', 'text-light');
+                body.classList.remove('bg-light', 'text-dark');
+                card.classList.add('bg-dark', 'text-light');
+                card.classList.remove('bg-light', 'text-dark');
+                toggleButton.textContent = "Disable Dark Mode";
             } else {
-                body.classList.remove('dark-mode');
-                body.classList.add('light-mode');
-                document.getElementById('dark-mode-toggle').textContent = "Enable Dark Mode";
+                body.classList.add('bg-light', 'text-dark');
+                body.classList.remove('bg-dark', 'text-light');
+                card.classList.add('bg-light', 'text-dark');
+                card.classList.remove('bg-dark', 'text-light');
+                toggleButton.textContent = "Enable Dark Mode";
             }
         }
 
@@ -61,31 +69,26 @@
             const now = new Date();
             const deadline = new Date();
             deadline.setHours(17, 30, 0, 0);
-
-            // If it's past 5:30 PM, move the countdown to tomorrow's 5:30 PM
             if (now > deadline) {
                 deadline.setDate(deadline.getDate() + 1);
             }
-
             const difference = deadline - now;
             const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((difference % (1000 * 60)) / 1000);
             document.getElementById('countdown').innerHTML = `<h2>${hours}h ${minutes}m ${seconds}s</h2>`;
-
-            // If the countdown is over, display a message
             if (difference < 0) {
                 document.getElementById('countdown').innerHTML = "<h2>It's 5:30 PM!</h2>";
             }
         }
 
+        // Set up the event listener for the toggle button
         document.getElementById('dark-mode-toggle').addEventListener('click', toggleDarkMode);
+
         setInterval(updateCountdown, 1000);
         initializeTheme();
         updateCountdown();
     </script>
-
-    <!-- Include Bootstrap JS and Popper (optional, if you use Bootstrap JS components) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
