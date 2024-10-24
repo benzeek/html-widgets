@@ -1,0 +1,29 @@
+/* Light Mode (default) */
+body.light-mode {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.card {
+    background-color: #fff;
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #333;
+    color: #f4f4f4;
+}
+
+body.dark-mode .card {
+    background-color: #444;
+    color: #fff;
+}
+
+body.dark-mode .btn {
+    background-color: #555;
+    color: #fff;
+}
+
+body.dark-mode .btn:hover {
+    background-color: #666;
+}
