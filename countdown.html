@@ -63,6 +63,7 @@
         const storageKey = 'theme-preference';
 
         const onClick = () => {
+            console.log("Button clicked); //Debugging
             theme.value = theme.value === 'light' ? 'dark' : 'light';
             setPreference();
         };
@@ -105,8 +106,8 @@
         reflectPreference();
 
         window.addEventListener("load", () => {
-            reflectPreference();
             document.querySelector('#theme-toggle').addEventListener('click', onClick);
+            reflectPreference();
             updateCountdown();
             setInterval(updateCountdown, 1000);
         });
