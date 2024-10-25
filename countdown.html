@@ -40,12 +40,14 @@
 
         <button class="theme-toggle" id="theme-toggle" title="Toggles light & dark" aria-label="auto" aria-live="polite">
             <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
+                <!-- Define the moon mask to create the crescent shape -->
                 <mask class="moon" id="moon-mask">
                     <rect x="0" y="0" width="100%" height="100%" fill="white" />
-                    <circle cx="24" cy="10" r="6" fill="black" />
+                    <!-- This circle cuts out part of the sun to create the crescent -->
+                    <circle cx="16" cy="12" r="6" fill="black" />
                 </mask>
-                <!-- Ensure sun and moon are filled with appropriate colors -->
-                <circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor" />
+                <!-- The sun circle, which will have part of it masked by the moon -->
+                <circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="white" />
                 <g class="sun-beams" stroke="currentColor">
                     <line x1="12" y1="1" x2="12" y2="3" />
                     <line x1="12" y1="21" x2="12" y2="23" />
@@ -58,6 +60,7 @@
                 </g>
             </svg>
         </button>
+
 
     </div>
 
