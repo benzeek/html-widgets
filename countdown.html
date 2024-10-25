@@ -7,82 +7,104 @@
     <title>Time Until We Can Leave</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-    @import "https://unpkg.com/open-props/easings.min.css";
-    
-    .sun-and-moon > :is(.moon, .sun, .sun-beams) {
-        transform-origin: center;
-        transition: transform 0.5s var(--ease-elastic-3), opacity 0.5s var(--ease-elastic-4);
+        @import "https://unpkg.com/open-props/easings.min.css";
 
-    .sun-and-moon > :is(.moon, .sun) {
-        fill: var(--icon-fill);
-    }
-
-    .theme-toggle:is(:hover, :focus-visible) > .sun-and-moon > :is(.moon, .sun) {
-        fill: var(--icon-fill-hover);
-    }
-
-    .sun-and-moon > .sun-beams {
-        stroke: var(--icon-fill);
-        stroke-width: 2px;
-        transition: stroke 0.3s var(--ease-out-5), opacity 0.3s var(--ease-out-5);
-    }
-
-    .theme-toggle:is(:hover, :focus-visible) .sun-and-moon > .sun-beams {
-        stroke: var(--icon-fill-hover);
-    }
-
-    [data-theme="dark"] .sun-and-moon > .sun {
-        transform: scale(1.75);
-    }
-
-    [data-theme="dark"] .sun-and-moon > .sun-beams {
-        opacity: 0;
-    }
-
-    [data-theme="dark"] .sun-and-moon > .moon > circle {
-        transform: translateX(-7px);
-        transition: transform 0.25s var(--ease-out-5);
-    }
-
-    @supports (cx: 1) {
-        [data-theme="dark"] .sun-and-moon > .moon > circle {
-            cx: 17;
-            transform: translateX(0);
-            transition: cx 0.25s var(--ease-out-5);
+        /* General icon and beam styles */
+        .sun-and-moon > :is(.moon, .sun, .sun-beams) {
+            transform-origin: center;
         }
-    }
 
-    @media (prefers-reduced-motion: no-preference) {
         .sun-and-moon > .sun {
-            transition: transform 0.5s var(--ease-elastic-3);
+            fill: var(--icon-fill-sun, #FFA500); /* Sun color in light mode */
+        }
+
+        .sun-and-moon > .moon {
+            fill: var(--icon-fill-moon, #333); /* Moon color in light mode */
         }
 
         .sun-and-moon > .sun-beams {
-            transition: transform 0.5s var(--ease-elastic-4), opacity 0.5s var(--ease-3);
+            stroke: var(--icon-fill-sun, #FFA500);
+            stroke-width: 2px;
         }
 
-        .sun-and-moon .moon > circle {
-            transition: transform 0.25s var(--ease-out-5);
+        /* Transition when hovering */
+        .theme-toggle:is(:hover, :focus-visible) > .sun-and-moon > :is(.moon, .sun) {
+            fill: var(--icon-fill-hover, #FFD700); /* Hover color */
         }
 
+        /* Dark mode styles */
         [data-theme="dark"] .sun-and-moon > .sun {
-            transform-timing-function: var(--ease-3);
-            transition-duration: 0.25s;
+            fill: #FFFFFF; /* White sun in dark mode */
             transform: scale(1.75);
         }
 
         [data-theme="dark"] .sun-and-moon > .sun-beams {
-            transition-duration: 0.15s;
-            transform: rotateZ(-25deg);
+            opacity: 0;
         }
 
         [data-theme="dark"] .sun-and-moon > .moon > circle {
-            transition-duration: 0.5s;
-            transition-delay: 0.25s;
+            transform: translateX(-7px);
+            fill: var(--icon-fill-moon, #FFFFFF); /* Hidden white moon in dark mode */
         }
-    }
-</style>
 
+        /* Moon transformation for light mode */
+        @supports (cx: 1) {
+            [data-theme="dark"] .sun-and-moon > .moon > circle {
+                cx: 17;
+                transform: translateX(0);
+            }
+        }
+
+        /* Smooth transition styles */
+        @media (prefers-reduced-motion: no-preference) {
+            .sun-and-moon > .sun {
+                transition: transform .5s var(--ease-elastic-3), fill .5s ease-in-out;
+            }
+
+            .sun-and-moon > .sun-beams {
+                transition: transform .5s var(--ease-elastic-4), opacity .5s var(--ease-3);
+            }
+
+            .sun-and-moon .moon > circle {
+                transition: transform .25s var(--ease-out-5), fill .5s ease-in-out;
+            }
+
+            @supports (cx: 1) {
+                .sun-and-moon .moon > circle {
+                    transition: cx .25s var(--ease-out-5);
+                }
+            }
+
+            [data-theme="dark"] .sun-and-moon > .sun {
+                transition-timing-function: var(--ease-3);
+                transition-duration: .25s;
+                transform: scale(1.75);
+            }
+
+            [data-theme="dark"] .sun-and-moon > .sun-beams {
+                transition-duration: .15s;
+                transform: rotateZ(-25deg);
+            }
+
+            [data-theme="dark"] .sun-and-moon > .moon > circle {
+                transition-duration: .5s;
+                transition-delay: .25s;
+            }
+        }
+
+        /* Button styling */
+        .theme-toggle {
+            background-color: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        /* Adjust the size of the icon */
+        .sun-and-moon {
+            width: 48px;
+            height: 48px;
+        }
+    </style>
 </head>
 
 <body class="bg-light text-dark">
@@ -90,72 +112,47 @@
         <h1 class="display-4 mb-4">Time Until We Can Leave</h1>
         <div id="countdown" class="card p-4 mb-4 bg-light text-dark border-0">Loading...</div>
         <button class="theme-toggle" id="theme-toggle" title="Toggles light & dark" aria-label="auto" aria-live="polite">
-          <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
-            <mask class="moon" id="moon-mask">
-              <rect x="0" y="0" width="100%" height="100%" fill="white" />
-              <circle cx="16" cy="12" r="6" fill="black" />
-            </mask>
-            <circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="var(--icon-fill)" />
-            <g class="sun-beams" stroke="var(--icon-fill)">
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </g>
-          </svg>
+            <svg class="sun-and-moon" aria-hidden="true" viewBox="0 0 24 24">
+                <mask class="moon" id="moon-mask">
+                    <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                    <circle cx="24" cy="10" r="6" fill="black" />
+                </mask>
+                <circle class="sun" cx="12" cy="12" r="6" mask="url(#moon-mask)" fill="currentColor" />
+                <g class="sun-beams" stroke="currentColor">
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </g>
+            </svg>
         </button>
-
     </div>
 
     <script>
         const storageKey = 'theme-preference';
-
-        const onClick = () => {
-            theme.value = theme.value === 'light' ? 'dark' : 'light';
-            setPreference();
-        };
-
-        const getColorPreference = () => {
-            if (localStorage.getItem(storageKey)) {
-                return localStorage.getItem(storageKey);
-            }
-            return window.matchMedia('(prefers-color-scheme: dark)').matches 
-                ? 'dark' 
-                : 'light';
-        };
-
-        const setPreference = () => {
-            localStorage.setItem(storageKey, theme.value);
-            reflectPreference();
-        };
+        const onClick = () => { theme.value = theme.value === 'light' ? 'dark' : 'light'; setPreference(); };
+        const getColorPreference = () => localStorage.getItem(storageKey) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const setPreference = () => { localStorage.setItem(storageKey, theme.value); reflectPreference(); };
 
         const reflectPreference = () => {
             const body = document.body;
             const countdown = document.getElementById('countdown');
-
-            if (theme.value === 'dark') {
-                body.classList.add('bg-dark', 'text-light');
-                body.classList.remove('bg-light', 'text-dark');
-                countdown.classList.add('bg-dark', 'text-light');
-                countdown.classList.remove('bg-light', 'text-dark');
-            } else {
-                body.classList.add('bg-light', 'text-dark');
-                body.classList.remove('bg-dark', 'text-light');
-                countdown.classList.add('bg-light', 'text-dark');
-                countdown.classList.remove('bg-dark', 'text-light');
-            }
-
+            body.classList.toggle('bg-dark', theme.value === 'dark');
+            body.classList.toggle('text-light', theme.value === 'dark');
+            body.classList.toggle('bg-light', theme.value === 'light');
+            body.classList.toggle('text-dark', theme.value === 'light');
+            countdown.classList.toggle('bg-dark', theme.value === 'dark');
+            countdown.classList.toggle('text-light', theme.value === 'dark');
+            countdown.classList.toggle('bg-light', theme.value === 'light');
+            countdown.classList.toggle('text-dark', theme.value === 'light');
             document.querySelector('#theme-toggle').setAttribute('aria-label', theme.value);
         };
 
-        const theme = {
-            value: getColorPreference(),
-        };
-
+        const theme = { value: getColorPreference() };
         reflectPreference();
 
         window.addEventListener("load", () => {
@@ -174,17 +171,12 @@
             const now = new Date();
             const deadline = new Date();
             deadline.setHours(17, 30, 0, 0);
-            if (now > deadline) {
-                deadline.setDate(deadline.getDate() + 1);
-            }
+            if (now > deadline) deadline.setDate(deadline.getDate() + 1);
             const difference = deadline - now;
             const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((difference % (1000 * 60)) / 1000);
             document.getElementById('countdown').innerHTML = `<h2>${hours}h ${minutes}m ${seconds}s</h2>`;
-            if (difference < 0) {
-                document.getElementById('countdown').innerHTML = "<h2>It's 5:30 PM!</h2>";
-            }
         }
     </script>
 </body>
