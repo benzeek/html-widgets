@@ -6,34 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Time Until We Can Leave</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            .theme-toggle {
+    <style>
+        .theme-toggle {
             border: none;
             outline: none;
             background: none;
             cursor: pointer;
             padding: 0;
-            }
-            .sun-and-moon > .sun {
+        }
+
+        .sun-and-moon > .sun {
             transition: transform 0.5s ease;
-            }
-            .sun-and-moon > .sun-beams {
+        }
+
+        .sun-and-moon > .sun-beams {
             transition: transform 0.5s ease, opacity 0.5s ease;
-            }
-            [data-theme="dark"] .sun-and-moon > .sun {
+        }
+
+        .bg-dark .sun-and-moon > .sun {
             transform: scale(1.75);
-            }
-            [data-theme="dark"] .sun-and-moon > .sun-beams {
+        }
+
+        .bg-dark .sun-and-moon > .sun-beams {
             opacity: 0;
-            }
+        }
     </style>
 </head>
 
 <body class="bg-light text-dark">
     <div class="container text-center">
         <h1 class="display-4 mb-4">Time Until We Can Leave</h1>
-        <div id="countdown" class="card p-4 mb-4 bg-light text-dark">Loading...</div>
-        
+        <div id="countdown" class="card p-4 mb-4 bg-light text-dark border-0">Loading...</div>
+
         <button class="theme-toggle" id="theme-toggle" title="Toggles light & dark" aria-label="auto" aria-live="polite">
             <svg class="sun-and-moon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24">
                 <mask class="moon" id="moon-mask">
@@ -54,39 +58,60 @@
             </svg>
         </button>
     </div>
+
     <script>
         const storageKey = 'theme-preference';
+
         const onClick = () => {
             theme.value = theme.value === 'light' ? 'dark' : 'light';
             setPreference();
         };
+
         const getColorPreference = () => {
             if (localStorage.getItem(storageKey)) {
                 return localStorage.getItem(storageKey);
             }
             return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         };
+
         const setPreference = () => {
             localStorage.setItem(storageKey, theme.value);
             reflectPreference();
         };
+
         const reflectPreference = () => {
-            document.documentElement.setAttribute('data-theme', theme.value);
+            const body = document.body;
+            const countdown = document.getElementById('countdown');
+
+            if (theme.value === 'dark') {
+                body.classList.add('bg-dark', 'text-light');
+                body.classList.remove('bg-light', 'text-dark');
+                countdown.classList.add('bg-dark', 'text-light');
+                countdown.classList.remove('bg-light', 'text-dark');
+            } else {
+                body.classList.add('bg-light', 'text-dark');
+                body.classList.remove('bg-dark', 'text-light');
+                countdown.classList.add('bg-light', 'text-dark');
+                countdown.classList.remove('bg-dark', 'text-light');
+            }
+
             document.querySelector('#theme-toggle').setAttribute('aria-label', theme.value);
         };
+
         const theme = {
             value: getColorPreference(),
         };
+
         reflectPreference();
-        window.onload = () => {
-            reflectPreference();
+
+        window.addEventListener("load", () => {
             document.querySelector('#theme-toggle').addEventListener('click', onClick);
+            reflectPreference();
             updateCountdown();
             setInterval(updateCountdown, 1000);
-        };
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ({
-            matches: isDark
-        }) => {
+        });
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ({ matches: isDark }) => {
             theme.value = isDark ? 'dark' : 'light';
             setPreference();
         });
