@@ -1,4 +1,3 @@
-/* Theme Toggle Styling and Animation */
 .sun-and-moon > :is(.moon, .sun, .sun-beams) {
   transform-origin: center;
 }
