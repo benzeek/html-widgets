@@ -23,22 +23,12 @@
             transition: transform 0.5s ease, opacity 0.5s ease;
         }
 
-        [data-theme="dark"] .sun-and-moon > .sun {
+        .bg-dark .sun-and-moon > .sun {
             transform: scale(1.75);
         }
 
-        [data-theme="dark"] .sun-and-moon > .sun-beams {
+        .bg-dark .sun-and-moon > .sun-beams {
             opacity: 0;
-        }
-
-        [data-theme="dark"] body {
-            background-color: #333;
-            color: #f4f4f4;
-        }
-
-        [data-theme="dark"] .card {
-            background-color: #444;
-            color: #fff;
         }
     </style>
 </head>
@@ -90,7 +80,21 @@
         };
 
         const reflectPreference = () => {
-            document.documentElement.setAttribute('data-theme', theme.value);
+            const body = document.body;
+            const countdown = document.getElementById('countdown');
+
+            if (theme.value === 'dark') {
+                body.classList.add('bg-dark', 'text-light');
+                body.classList.remove('bg-light', 'text-dark');
+                countdown.classList.add('bg-dark', 'text-light');
+                countdown.classList.remove('bg-light', 'text-dark');
+            } else {
+                body.classList.add('bg-light', 'text-dark');
+                body.classList.remove('bg-dark', 'text-light');
+                countdown.classList.add('bg-light', 'text-dark');
+                countdown.classList.remove('bg-dark', 'text-light');
+            }
+
             document.querySelector('#theme-toggle').setAttribute('aria-label', theme.value);
         };
 
