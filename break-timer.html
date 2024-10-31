@@ -11,7 +11,7 @@
 
     <div class="text-center">
         <h1>Break Timer</h1>
-        <p>Click the button to start your break. Break duration: 15 minutes</p>
+        <p> Track your 15 minute breaks with ease. <br> Morning Breaks: Between 9:00 AM and 11:15 AM. <br> Afternoon Breaks: Between 2:00 PM and 4:45 PM. </p>
 
         <!-- Morning Break Button -->
         <div class="mb-3">
@@ -77,10 +77,11 @@
             const timerId = buttonId === 'morningBreakBtn' ? 'morningBreakTimer' : 'afternoonBreakTimer';
             const timerDisplay = document.getElementById(timerId);
 
+            // Reset button and timer display
             button.disabled = false;
             button.classList.replace('btn-success', 'btn-primary');
             button.textContent = buttonId === 'morningBreakBtn' ? 'Start Morning Break' : 'Start Afternoon Break';
-            timerDisplay.textContent = '';
+            timerDisplay.textContent = ''; // Clear timer display
             localStorage.removeItem(`${buttonId}_completed`);
         }
 
@@ -97,6 +98,8 @@
                 document.getElementById('afternoonBreakBtn').textContent = 'Start Afternoon Break';
                 document.getElementById('morningBreakBtn').classList.replace('btn-success', 'btn-primary');
                 document.getElementById('afternoonBreakBtn').classList.replace('btn-success', 'btn-primary');
+                document.getElementById('morningBreakTimer').textContent = ''; // Clear morning timer display
+                document.getElementById('afternoonBreakTimer').textContent = ''; // Clear afternoon timer display
             }
         }
 
