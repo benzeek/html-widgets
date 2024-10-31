@@ -5,51 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Break Timer</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-        }
-        .btn-primary, .btn-completed {
-            width: 200px;
-            font-size: 16px;
-        }
-        .btn-primary {
-            background-color: #1e88e5;
-            border-color: #1e88e5;
-        }
-        .btn-completed {
-            background-color: #43a047;
-            border-color: #43a047;
-            color: #ffffff;
-        }
-        .timer {
-            font-size: 1.2rem;
-            color: #ff7043;
-            margin-top: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="container my-5">
+<body class="bg-dark text-light container my-5">
 
     <div class="text-center">
         <h1>Break Timer</h1>
         <p>Click the button to start your break. Break duration: 15 minutes</p>
 
-        <!-- Morning Button -->
+        <!-- Morning Break Button -->
         <div class="mb-3">
             <button id="morningBreakBtn" class="btn btn-primary" onclick="startBreak('morningBreakBtn')">
                 Start Morning Break
             </button>
-            <div id="morningBreakTimer" class="timer"></div>
+            <i id="morningResetIcon" class="fas fa-sync-alt text-warning ml-2" onclick="resetBreak('morningBreakBtn')" title="Reset Morning Break"></i>
+            <div id="morningBreakTimer" class="text-warning mt-2"></div>
         </div>
 
-        <!-- Afternoon Button -->
+        <!-- Afternoon Break Button -->
         <div class="mb-3">
             <button id="afternoonBreakBtn" class="btn btn-primary" onclick="startBreak('afternoonBreakBtn')">
                 Start Afternoon Break
             </button>
-            <div id="afternoonBreakTimer" class="timer"></div>
+            <i id="afternoonResetIcon" class="fas fa-sync-alt text-warning ml-2" onclick="resetBreak('afternoonBreakBtn')" title="Reset Afternoon Break"></i>
+            <div id="afternoonBreakTimer" class="text-warning mt-2"></div>
         </div>
     </div>
 
@@ -75,7 +54,7 @@
                 if (remainingTime <= 0) {
                     clearInterval(countdown);
                     button.textContent = 'Break Completed';
-                    button.classList.add('btn-completed');
+                    button.classList.replace('btn-primary', 'btn-success');
                     timerDisplay.textContent = ''; // Clear timer display after completion
 
                     // Save the completed status in localStorage with today's date
@@ -85,26 +64,39 @@
             }, 1000);
         }
 
+        // Function to format and display time
         function displayTime(seconds, element) {
             const minutes = Math.floor(seconds / 60);
             const sec = seconds % 60;
             element.textContent = `${minutes}:${sec < 10 ? '0' : ''}${sec} remaining`;
         }
 
-        // reset buttons at 8:30 AM daily
+        // Reset button function
+        function resetBreak(buttonId) {
+            const button = document.getElementById(buttonId);
+            const timerId = buttonId === 'morningBreakBtn' ? 'morningBreakTimer' : 'afternoonBreakTimer';
+            const timerDisplay = document.getElementById(timerId);
+
+            button.disabled = false;
+            button.classList.replace('btn-success', 'btn-primary');
+            button.textContent = buttonId === 'morningBreakBtn' ? 'Start Morning Break' : 'Start Afternoon Break';
+            timerDisplay.textContent = '';
+            localStorage.removeItem(`${buttonId}_completed`);
+        }
+
+        // Function to reset buttons at 8:30 AM daily
         function resetButtons() {
             const now = new Date();
             const resetTime = new Date();
             resetTime.setHours(8, 30, 0, 0);
 
-            // Reset buttons if the current time is past 8:30 AM
             if (now >= resetTime) {
                 document.getElementById('morningBreakBtn').disabled = false;
                 document.getElementById('afternoonBreakBtn').disabled = false;
                 document.getElementById('morningBreakBtn').textContent = 'Start Morning Break';
                 document.getElementById('afternoonBreakBtn').textContent = 'Start Afternoon Break';
-                document.getElementById('morningBreakBtn').classList.remove('btn-completed');
-                document.getElementById('afternoonBreakBtn').classList.remove('btn-completed');
+                document.getElementById('morningBreakBtn').classList.replace('btn-success', 'btn-primary');
+                document.getElementById('afternoonBreakBtn').classList.replace('btn-success', 'btn-primary');
             }
         }
 
@@ -112,18 +104,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toLocaleDateString();
 
-            // Check each button's completion status
             ['morningBreakBtn', 'afternoonBreakBtn'].forEach(buttonId => {
                 const dateKey = `${buttonId}_completed`;
                 if (localStorage.getItem(dateKey) === today) {
                     const button = document.getElementById(buttonId);
                     button.textContent = 'Break Completed';
-                    button.classList.add('btn-completed');
+                    button.classList.replace('btn-primary', 'btn-success');
                     button.disabled = true;
                 }
             });
 
-            // Schedule reset for next 8:30 AM
             setInterval(resetButtons, 60 * 1000); // Check every minute
         });
     </script>
