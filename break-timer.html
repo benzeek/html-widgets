@@ -11,7 +11,7 @@
 
     <div class="text-center">
         <h1>Break Timer</h1>
-        <p> Track your 15 minute breaks with ease. <br> Morning Breaks: Between 9:00 AM and 11:15 AM. <br> Afternoon Breaks: Between 2:00 PM and 4:45 PM. </p>
+        <p>Morning Break: Between 9:00 AM and 11:15 AM <br> Afternoon Break: Between 2:00 PM and 4:45 PM </p>
 
         <!-- Morning Break Button -->
         <div class="mb-3">
@@ -33,6 +33,9 @@
     </div>
 
     <script>
+        // Store countdown interval IDs
+        const countdowns = {};
+
         // Function to start the break timer
         function startBreak(buttonId) {
             const button = document.getElementById(buttonId);
@@ -46,13 +49,13 @@
             let remainingTime = 15 * 60; // 15 minutes in seconds
             displayTime(remainingTime, timerDisplay);
 
-            // Countdown timer
-            const countdown = setInterval(() => {
+            // Start countdown and store interval ID
+            countdowns[buttonId] = setInterval(() => {
                 remainingTime--;
                 displayTime(remainingTime, timerDisplay);
 
                 if (remainingTime <= 0) {
-                    clearInterval(countdown);
+                    clearInterval(countdowns[buttonId]);
                     button.textContent = 'Break Completed';
                     button.classList.replace('btn-primary', 'btn-success');
                     timerDisplay.textContent = ''; // Clear timer display after completion
@@ -76,6 +79,12 @@
             const button = document.getElementById(buttonId);
             const timerId = buttonId === 'morningBreakBtn' ? 'morningBreakTimer' : 'afternoonBreakTimer';
             const timerDisplay = document.getElementById(timerId);
+
+            // Clear interval if it's running
+            if (countdowns[buttonId]) {
+                clearInterval(countdowns[buttonId]);
+                delete countdowns[buttonId];
+            }
 
             // Reset button and timer display
             button.disabled = false;
