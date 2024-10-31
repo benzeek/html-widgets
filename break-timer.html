@@ -6,9 +6,27 @@
     <title>Break Timer</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .btn-primary, .btn-completed {
+            width: 200px;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background-color: #1e88e5;
+            border-color: #1e88e5;
+        }
         .btn-completed {
-            background-color: #28a745;
-            color: white;
+            background-color: #43a047;
+            border-color: #43a047;
+            color: #ffffff;
+        }
+        .timer {
+            font-size: 1.2rem;
+            color: #ff7043;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -16,38 +34,64 @@
 
     <div class="text-center">
         <h1>Break Timer</h1>
-        <p>Click the button to start your break.</p>
+        <p>Click the button to start your break. Break duration: 15 minutes</p>
 
-        <button id="morningBreakBtn" class="btn btn-primary m-2" onclick="startBreak('morningBreakBtn')">
-            Start Morning Break
-        </button>
+        <!-- Morning Button -->
+        <div class="mb-3">
+            <button id="morningBreakBtn" class="btn btn-primary" onclick="startBreak('morningBreakBtn')">
+                Start Morning Break
+            </button>
+            <div id="morningBreakTimer" class="timer"></div>
+        </div>
 
-        <button id="afternoonBreakBtn" class="btn btn-primary m-2" onclick="startBreak('afternoonBreakBtn')">
-            Start Afternoon Break
-        </button>
+        <!-- Afternoon Button -->
+        <div class="mb-3">
+            <button id="afternoonBreakBtn" class="btn btn-primary" onclick="startBreak('afternoonBreakBtn')">
+                Start Afternoon Break
+            </button>
+            <div id="afternoonBreakTimer" class="timer"></div>
+        </div>
     </div>
 
     <script>
-        // start the break timer
+        // Function to start the break timer
         function startBreak(buttonId) {
             const button = document.getElementById(buttonId);
+            const timerId = buttonId === 'morningBreakBtn' ? 'morningBreakTimer' : 'afternoonBreakTimer';
+            const timerDisplay = document.getElementById(timerId);
 
-            // Disable button
+            // Disable button and initialize countdown
             button.disabled = true;
             button.textContent = 'Break in Progress...';
 
-            // Set timer for 15 minutes
-            setTimeout(() => {
-                button.textContent = 'Break Completed';
-                button.classList.add('btn-completed');
-            }, 15 * 60 * 1000);
+            let remainingTime = 15 * 60; // 15 minutes in seconds
+            displayTime(remainingTime, timerDisplay);
 
-            // Save the completion status to local storage with today's date
-            const dateKey = `${buttonId}_completed`;
-            localStorage.setItem(dateKey, new Date().toLocaleDateString());
+            // Countdown timer
+            const countdown = setInterval(() => {
+                remainingTime--;
+                displayTime(remainingTime, timerDisplay);
+
+                if (remainingTime <= 0) {
+                    clearInterval(countdown);
+                    button.textContent = 'Break Completed';
+                    button.classList.add('btn-completed');
+                    timerDisplay.textContent = ''; // Clear timer display after completion
+
+                    // Save the completed status in localStorage with today's date
+                    const dateKey = `${buttonId}_completed`;
+                    localStorage.setItem(dateKey, new Date().toLocaleDateString());
+                }
+            }, 1000);
         }
 
-        // Function to reset the buttons daily at 8:30 AM
+        function displayTime(seconds, element) {
+            const minutes = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            element.textContent = `${minutes}:${sec < 10 ? '0' : ''}${sec} remaining`;
+        }
+
+        // reset buttons at 8:30 AM daily
         function resetButtons() {
             const now = new Date();
             const resetTime = new Date();
