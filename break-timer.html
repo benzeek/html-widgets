@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Break Timer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .btn-completed {
+            background-color: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body class="container my-5">
+
+    <div class="text-center">
+        <h1>Break Timer</h1>
+        <p>Click the button to start your break.</p>
+
+        <button id="morningBreakBtn" class="btn btn-primary m-2" onclick="startBreak('morningBreakBtn')">
+            Start Morning Break
+        </button>
+
+        <button id="afternoonBreakBtn" class="btn btn-primary m-2" onclick="startBreak('afternoonBreakBtn')">
+            Start Afternoon Break
+        </button>
+    </div>
+
+    <script>
+        // start the break timer
+        function startBreak(buttonId) {
+            const button = document.getElementById(buttonId);
+
+            // Disable button
+            button.disabled = true;
+            button.textContent = 'Break in Progress...';
+
+            // Set timer for 15 minutes
+            setTimeout(() => {
+                button.textContent = 'Break Completed';
+                button.classList.add('btn-completed');
+            }, 15 * 60 * 1000);
+
+            // Save the completion status to local storage with today's date
+            const dateKey = `${buttonId}_completed`;
+            localStorage.setItem(dateKey, new Date().toLocaleDateString());
+        }
+
+        // Function to reset the buttons daily at 8:30 AM
+        function resetButtons() {
+            const now = new Date();
+            const resetTime = new Date();
+            resetTime.setHours(8, 30, 0, 0);
+
+            // Reset buttons if the current time is past 8:30 AM
+            if (now >= resetTime) {
+                document.getElementById('morningBreakBtn').disabled = false;
+                document.getElementById('afternoonBreakBtn').disabled = false;
+                document.getElementById('morningBreakBtn').textContent = 'Start Morning Break';
+                document.getElementById('afternoonBreakBtn').textContent = 'Start Afternoon Break';
+                document.getElementById('morningBreakBtn').classList.remove('btn-completed');
+                document.getElementById('afternoonBreakBtn').classList.remove('btn-completed');
+            }
+        }
+
+        // On page load, check if breaks were completed today
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toLocaleDateString();
+
+            // Check each button's completion status
+            ['morningBreakBtn', 'afternoonBreakBtn'].forEach(buttonId => {
+                const dateKey = `${buttonId}_completed`;
+                if (localStorage.getItem(dateKey) === today) {
+                    const button = document.getElementById(buttonId);
+                    button.textContent = 'Break Completed';
+                    button.classList.add('btn-completed');
+                    button.disabled = true;
+                }
+            });
+
+            // Schedule reset for next 8:30 AM
+            setInterval(resetButtons, 60 * 1000); // Check every minute
+        });
+    </script>
+
+</body>
+</html>
