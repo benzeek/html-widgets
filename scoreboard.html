@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Desk Leaderboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-red: #fb7185;
+            --accent-gold: #fbbf24;
+            --accent-cyan: #22d3ee;
+            --text-main: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* --- 1. HEADER --- */
+        .header-container { margin-bottom: 30px; text-align: center; }
+        
+        h1 {
+            margin: 0; color: #f1f5f9; text-transform: uppercase; letter-spacing: 4px; 
+            font-size: 2.5rem; font-weight: 800; position: relative;
+            cursor: default; transition: all 0.3s ease;
+            text-shadow: 3px 0px 0px rgba(251, 113, 133, 0.7), -3px 0px 0px rgba(56, 189, 248, 0.7);
+        }
+
+        h1:hover {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(56, 189, 248, 0.6);
+            color: #ffffff; letter-spacing: 6px;
+        }
+
+        /* --- 2. MASTER ROLL BUTTON --- */
+        .btn-tech {
+            background: #0f172a;
+            color: var(--accent-blue);
+            font-family: 'Courier New', monospace;
+            font-weight: bold; font-size: 1.1rem;
+            padding: 15px 40px;
+            border: 1px solid var(--accent-blue);
+            text-transform: uppercase; letter-spacing: 3px;
+            cursor: pointer; position: relative; overflow: hidden;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 15px; margin-bottom: 30px;
+        }
+        .btn-tech::after {
+            content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.2), transparent);
+            transform: skewX(-20deg); transition: 0.5s;
+        }
+        .btn-tech:hover {
+            background: rgba(56, 189, 248, 0.1); color: #fff;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            text-shadow: 0 0 5px var(--accent-blue); border-color: #fff;
+        }
+        .btn-tech:hover::after { left: 150%; transition: 0.5s; }
+
+        /* --- 3. MODALS --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .selection-screen {
+            background: #1e293b; width: 95%; max-width: 650px; height: 80vh;
+            border-radius: 16px; border: 1px solid #334155;
+            display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); overflow: hidden;
+        }
+
+        .screen-header {
+            padding: 20px; background: #020617; border-bottom: 1px solid #334155;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        h2 { margin: 0; color: white; text-transform: uppercase; letter-spacing: 2px; }
+        .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+        .close-btn:hover { color: var(--accent-red); }
+
+        .header-controls { display: flex; align-items: center; gap: 15px; }
+
+        /* NEW MASTER ROLL BTN */
+        .btn-master-roll {
+            background: var(--accent-blue); color: #0f172a; border: none;
+            border-radius: 30px; padding: 8px 16px;
+            font-weight: bold; font-family: monospace; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+        }
+        .btn-master-roll:hover { box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); transform: scale(1.05); }
+
+        .mode-toggle-container {
+            display: flex; align-items: center; gap: 15px;
+            background: #0f172a; padding: 10px 20px; border-radius: 30px; border: 1px solid #334155;
+        }
+        .toggle-label { font-weight: bold; font-family: monospace; font-size: 0.9rem; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-gold); }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        /* --- 4. CUSTOM DROPDOWN & AUTO ROLL --- */
+        .employee-list { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+
+        .employee-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #334155; border-radius: 8px; padding: 15px 20px;
+            transition: all 0.2s; position: relative;
+        }
+        .employee-row:hover { border-color: #64748b; background: rgba(255,255,255,0.04); }
+        
+        .row-info { display: flex; flex-direction: column; }
+        .emp-name { font-size: 1.1rem; font-weight: bold; color: white; }
+        .emp-stat { font-size: 0.8rem; color: #94a3b8; font-family: monospace; }
+
+        .roll-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn-auto-roll {
+            background: #1e293b; border: 1px solid var(--accent-blue); color: var(--accent-blue);
+            border-radius: 6px; padding: 8px 12px; cursor: pointer;
+            font-family: monospace; font-weight: bold; font-size: 0.9rem;
+            transition: all 0.2s; height: 42px; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-auto-roll:hover { background: var(--accent-blue); color: #0f172a; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+        .btn-auto-roll:active { transform: scale(0.95); }
+
+        /* The Custom Select Container */
+        .d20-select-container { position: relative; }
+        
+        /* The Trigger Button (Closed) */
+        .d20-trigger-btn {
+            background: #0f172a; border: 1px solid #475569; border-radius: 6px;
+            color: #94a3b8; padding: 8px 12px; cursor: pointer; height: 42px;
+            display: flex; align-items: center; gap: 10px; font-family: monospace;
+            min-width: 80px; justify-content: space-between; transition: 0.2s;
+        }
+        .d20-trigger-btn:hover { border-color: var(--accent-blue); color: white; }
+        
+        /* Value Selected Style */
+        .d20-trigger-btn.has-value {
+            border-color: transparent; 
+            color: white; font-weight: bold; font-size: 1.1rem;
+            text-shadow: 0 0 5px black;
+        }
+        
+        /* The Dropdown Grid */
+        .d20-dropdown {
+            position: absolute; top: 110%; right: 0; z-index: 100;
+            background: #0f172a; border: 1px solid var(--accent-blue);
+            border-radius: 8px; padding: 10px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 240px;
+            opacity: 0; pointer-events: none; transform: translateY(-10px);
+            transition: 0.2s;
+        }
+        .d20-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+        .d20-wireframe-btn {
+            --hue: 210; width: 40px; height: 44px;
+            background: transparent; border: none; cursor: pointer; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            font-family: monospace; font-size: 0.9rem; font-weight: bold; color: #e2e8f0;
+            transition: transform 0.1s;
+        }
+        .d20-wireframe-btn svg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            fill: rgba(15, 23, 42, 0.5); stroke: hsl(var(--hue), 70%, 40%); 
+            stroke-width: 1.5; z-index: 1; transition: 0.2s;
+        }
+        .d20-wireframe-btn span { z-index: 2; position: relative; }
+        .d20-wireframe-btn:hover { transform: scale(1.1); z-index: 2; }
+        .d20-wireframe-btn:hover svg { stroke: hsl(var(--hue), 100%, 60%); fill: hsl(var(--hue), 100%, 10%, 0.5); }
+
+
+        /* Footer */
+        .screen-footer {
+            padding: 20px; background: #020617; border-top: 1px solid #334155;
+            display: flex; justify-content: flex-end;
+        }
+        .save-btn {
+            background: var(--accent-green); color: #0f172a;
+            font-weight: bold; font-size: 1.1rem; padding: 12px 30px;
+            border: none; border-radius: 4px; cursor: pointer;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+            transition: transform 0.2s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .save-btn:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(74, 222, 128, 0.5); }
+
+        /* --- 5. WINNER REVEAL --- */
+        .result-card {
+            padding: 40px; text-align: center; border-radius: 4px;
+            max-width: 500px; width: 90%; position: relative;
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(251, 191, 36, 0.05); border: 1px solid var(--accent-gold);
+            box-shadow: 0 0 50px rgba(251, 191, 36, 0.15), inset 0 0 20px rgba(251, 191, 36, 0.05);
+            font-family: 'Courier New', monospace; overflow: hidden;
+        }
+        .modal-overlay.active .result-card { transform: scale(1); }
+
+        .scanline {
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(251, 191, 36, 0.4); animation: scan 2.5s linear infinite;
+            pointer-events: none; box-shadow: 0 0 10px var(--accent-gold);
+        }
+        @keyframes scan { 0% { top: -10%; opacity: 0; } 50% { opacity: 1; } 100% { top: 110%; opacity: 0; } }
+
+        .result-card h2 { 
+            color: var(--accent-gold); text-transform: uppercase; letter-spacing: 6px; font-size: 1.2rem;
+            border-bottom: 1px dashed rgba(251, 191, 36, 0.5); padding-bottom: 10px; display: inline-block; width: 100%;
+        }
+        .winner-name { 
+            font-size: 2.5rem; font-weight: 800; margin: 20px 0 10px 0; display: block; 
+            color: white; text-shadow: 0 0 10px var(--accent-gold); text-transform: uppercase;
+        }
+        .win-details { font-size: 1rem; color: #fde68a; margin-bottom: 30px; opacity: 0.8; }
+        .close-result { 
+            background: rgba(251, 191, 36, 0.1); border: 1px solid var(--accent-gold); 
+            color: var(--accent-gold); padding: 12px 30px; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 2px; font-weight: bold; 
+            font-family: 'Courier New', monospace; transition: 0.2s;
+        }
+        .close-result:hover { background: var(--accent-gold); color: #0f172a; box-shadow: 0 0 15px var(--accent-gold); }
+
+        /* --- 6. TABLE & LAYOUT --- */
+        .controls { margin-bottom: 20px; margin-top: 20px; background: var(--card-bg); padding: 15px; border-radius: 12px; display: flex; gap: 12px; border: 1px dashed #475569; }
+        input, select { padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #020617; color: white; }
+        select:disabled { border: none; background: transparent; color: #cbd5e1; appearance: none; font-weight: 500; }
+        
+        .test-panel { 
+            margin-bottom: 20px; padding: 15px; border: 1px solid var(--accent-red); border-radius: 8px; 
+            background: rgba(251, 113, 133, 0.1); text-align: center; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+        }
+
+        table { width: 100%; max-width: 1000px; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        th { background-color: #334155; padding: 15px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #cbd5e1; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; vertical-align: middle; }
+        tbody tr:first-child { background: rgba(74, 222, 128, 0.05); border-left: 4px solid var(--accent-gold); }
+
+        .stat-val { font-weight: bold; font-family: monospace; font-size: 1.1rem; }
+        .silver-crown { margin-left: 8px; font-size: 1.2rem; filter: grayscale(100%) brightness(130%) contrast(1.2); cursor: help; vertical-align: middle; }
+
+        button { cursor: pointer; border: none; border-radius: 4px; }
+        .btn-metric { background-color: var(--accent-blue); color: #0f172a; padding: 6px 12px; font-weight: bold; margin-right: 5px; }
+        .btn-add { background-color: var(--accent-blue); color: #0f172a; padding: 8px 16px; font-weight: bold; }
+        
+        .delete-btn { background: transparent; color: #ef4444; font-size: 1.4rem; padding: 0 5px; margin-left: 5px; line-height: 1; vertical-align: middle;}
+        .delete-btn:hover { color: #f87171; }
+        .reset-btn { background: transparent; color: var(--accent-gold); font-size: 1.2rem; padding: 0 5px; margin-left: 8px; vertical-align: middle; }
+        .reset-btn:hover { color: #fde047; transform: rotate(180deg); transition: transform 0.4s; }
+
+        
+        .hof-container { margin-top: 50px; width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 5px #fbbf24, 0 0 10px #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3), inset 0 0 10px rgba(251, 191, 36, 0.2); }
+            20%, 24%, 55% { opacity: 0.4; text-shadow: none; box-shadow: none; }
+        }
+        .hof-header {
+            font-size: 1.3rem; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 3px;
+            border: 2px solid var(--accent-gold); padding: 10px 30px; border-radius: 4px; margin: 0 0 25px 0;
+            width: fit-content; text-align: center; cursor: default;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.3), inset 0 0 10px rgba(251, 191, 36, 0.2);
+            text-shadow: 0 0 5px rgba(251, 191, 36, 0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hof-header:hover { animation: flicker 0.15s infinite alternate; border-color: #d97706; color: #d97706; }
+        
+        .hof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; width: 100%; }
+        .relic-card {
+            background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 15px; text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); transition: transform 0.2s, border-color 0.2s; position: relative;
+            overflow: hidden; display: flex; flex-direction: column; justify-content: center;
+        }
+        .relic-card:hover { transform: translateY(-3px); border-color: #fbbf24; }
+        .relic-card::before { content: ""; position: absolute; top:0; left:0; width:100%; height:4px; background: linear-gradient(90deg, #fbbf24, #fb7185); }
+        .relic-date { font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
+        .relic-name { font-weight: bold; font-size: 1.1rem; color: #f1f5f9; margin-bottom: 5px; }
+        .relic-score { color: #fbbf24; font-family: monospace; font-weight: bold; font-size: 0.9rem; }
+        .card-delete-btn {
+            position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.3); color: #ef4444; border: none; border-radius: 50%;
+            width: 20px; height: 20px; cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center;
+        }
+        .card-delete-btn:hover { background: #ef4444; color: white; }
+
+        /* --- 7. SETTINGS CONTAINER --- */
+        #settings-container {
+            position: fixed; bottom: 30px; right: 30px;
+            z-index: 50; 
+            display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 15px;
+            transition: opacity 0.3s;
+        }
+        #settings-container.hidden { display: none !important; }
+
+        .gear-btn { 
+            background: var(--bg-color); font-size: 1.8rem; 
+            cursor: pointer; transition: all 0.3s; padding: 12px;
+        }
+        .gear-btn:hover { transform: rotate(90deg); color: white; border-color: var(--accent-blue); }
+        
+        .settings-bar { 
+            display: flex; gap: 20px; background: #1e293b; padding: 15px 25px; 
+            border-radius: 12px; border: 1px solid #334155; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .hidden { display: none !important; }
+        
+        .toggle-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-red); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+    </style>
+</head>
+<body>
+
+    <div id="rollModal" class="modal-overlay">
+        <div class="selection-screen">
+            <div class="screen-header">
+                <h2>Record Rolls</h2>
+                
+                <div class="header-controls">
+                    <button class="btn-master-roll" onclick="rollAll()">
+                        <span>⚡ ROLL ALL</span>
+                    </button>
+
+                    <div class="mode-toggle-container">
+                        <span class="toggle-label" id="modeLabel">High</span>
+                        <label class="switch">
+                            <input type="checkbox" id="modeToggle" onchange="toggleRollMode()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="close-btn" onclick="closeRollModal()">×</button>
+            </div>
+            
+            <div class="employee-list" id="rollList"></div>
+            
+            <div class="screen-footer">
+                <button class="save-btn" onclick="saveAndCalculate()">Save & Record Results</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal-overlay">
+        <div class="result-card">
+            <div class="scanline"></div>
+            <h2>// WINNER //</h2>
+            <span class="winner-name" id="revealName">Loading...</span>
+            <div class="win-details" id="revealDetails">Calculating...</div>
+            <button class="close-result" onclick="closeResultModal()">Confirm</button>
+        </div>
+    </div>
+
+    <div class="header-container">
+        <h1>Help Desk Leaderboard</h1>
+    </div>
+
+    <button class="btn-tech" onclick="openRollModal()">
+        <span>[ ROLL ]</span>
+    </button>
+
+    <div id="testPanel" class="test-panel hidden">
+        <strong style="width:100%;">⚠️ DEBUG AREA</strong>
+        <button onclick="randomizeStats()" style="background:#38bdf8; color:#0f172a; border:none; padding:8px 16px; border-radius:4px;">🎲 Randomize Stats</button>
+        <button onclick="forceRandomMonthReset()" style="background:var(--accent-red); color:white; border:none; padding:8px 16px; border-radius:4px;">Force Monthly Reset</button>
+        <button onclick="clearHistory()" style="background:#fbbf24; color:#0f172a; border:none; padding:8px 16px; border-radius:4px;">Clear History</button>
+        <button onclick="localStorage.clear(); location.reload();" style="background:#475569; color:white; border:none; padding:8px 16px; border-radius:4px;">Factory Reset</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Employee</th>
+                <th>Early Day</th>
+                <th>Dice Wins</th>
+                <th>Best Roll</th>
+                <th>Loss Streak</th>
+                <th id="actionHeader" class="hidden">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="boardBody"></tbody>
+    </table>
+
+    <div id="addControls" class="controls hidden">
+        <input type="text" id="playerName" placeholder="Enter Employee Name...">
+        <button class="btn-add" onclick="addPlayer()">Add Competitor</button>
+    </div>
+
+    <div class="hof-container">
+        <div class="hof-header">Hall of Fame</div>
+        <div id="hofList" class="hof-grid"></div>
+    </div>
+
+    <div id="settings-container">
+        <button class="gear-btn" onclick="toggleSettingsMenu()">⚙️</button>
+        
+        <div id="settingsBar" class="settings-bar hidden">
+            <label class="toggle-label">Edit <label class="switch"><input type="checkbox" id="editToggle" onchange="toggleEditMode()"><span class="slider"></span></label></label>
+            <label class="toggle-label">Test <label class="switch"><input type="checkbox" id="testToggle" onchange="toggleTestMode()"><span class="slider"></span></label></label>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        let players = JSON.parse(localStorage.getItem('teamStats')) || [];
+        let history = JSON.parse(localStorage.getItem('teamHistory')) || [];
+        
+        // --- STATE ---
+        let isEditMode = false;
+        let isAdmin = false;
+        let isLowMode = false;
+        let currentSelections = {}; 
+        let openDropdownIndex = -1;
+
+        // --- SVG ASSETS ---
+        const d20SvgContent = `<path d="M50 5 L95 30 L95 80 L50 105 L5 80 L5 30 Z" vector-effect="non-scaling-stroke" /><path d="M50 5 L50 55" vector-effect="non-scaling-stroke" /><path d="M95 30 L50 55" vector-effect="non-scaling-stroke" /><path d="M95 80 L50 55" vector-effect="non-scaling-stroke" /><path d="M5 80 L50 55" vector-effect="non-scaling-stroke" /><path d="M5 30 L50 55" vector-effect="non-scaling-stroke" /><path d="M50 105 L50 55" vector-effect="non-scaling-stroke" />`;
+
+        // --- CORE FUNCTIONS ---
+        function checkMonthlyReset() {
+            const now = new Date();
+            const currentMonthKey = `${now.getMonth() + 1}-${now.getFullYear()}`;
+            const lastReset = localStorage.getItem('lastResetMonth');
+            if (lastReset && lastReset !== currentMonthKey && players.length > 0) {
+                performReset(lastReset);
+            }
+            localStorage.setItem('lastResetMonth', currentMonthKey);
+        }
+
+        function performReset(dateLabel) {
+            const winner = [...players].sort((a, b) => b.wins - a.wins)[0];
+            if (winner && winner.wins > 0) {
+                history.unshift({ date: dateLabel, name: winner.name, score: winner.wins });
+                localStorage.setItem('teamHistory', JSON.stringify(history.slice(0, 10)));
+            }
+            players.forEach(p => { p.wins = 0; p.bestRoll = { value: 0, type: 'high' }; p.streak = 0; });
+            save();
+        }
+
+        function save() { localStorage.setItem('teamStats', JSON.stringify(players)); render(); }
+
+        // --- ROLL SELECTION MODAL LOGIC ---
+        function openRollModal() {
+            if(players.length === 0) { alert("Add players first!"); return; }
+            currentSelections = {};
+            openDropdownIndex = -1;
+            renderRollGrid();
+            document.getElementById('rollModal').classList.add('active');
+            document.getElementById('settings-container').classList.add('hidden');
+        }
+        function closeRollModal() { 
+            document.getElementById('rollModal').classList.remove('active');
+            document.getElementById('settings-container').classList.remove('hidden');
+        }
+
+        function toggleRollMode() {
+            isLowMode = document.getElementById('modeToggle').checked;
+            const label = document.getElementById('modeLabel');
+            label.innerHTML = isLowMode ? '<span style="color:var(--accent-red)">Low</span>' : '<span style="color:var(--accent-green)">High </span>';
+            renderRollGrid();
+        }
+
+        function toggleDropdown(idx) {
+            openDropdownIndex = (openDropdownIndex === idx) ? -1 : idx;
+            renderRollGrid();
+        }
+
+        function selectRoll(playerIdx, value) {
+            currentSelections[playerIdx] = value;
+            openDropdownIndex = -1;
+            renderRollGrid();
+        }
+
+        function autoRoll(playerIdx) {
+            const randomVal = Math.floor(Math.random() * 20) + 1;
+            selectRoll(playerIdx, randomVal);
+        }
+
+        // --- NEW: ROLL ALL FUNCTION ---
+        function rollAll() {
+            players.forEach((_, index) => {
+                autoRoll(index);
+            });
+        }
+
+        function getHue(value) {
+            let score = isLowMode ? (21 - value) : value;
+            if (score <= 10) { return 350 - (140 * ((score - 1) / 9)); }
+            return 210 - (165 * ((score - 11) / 9));
+        }
+
+        function renderRollGrid() {
+            const container = document.getElementById('rollList');
+            container.innerHTML = '';
+
+            players.forEach((p, idx) => {
+                const currentVal = currentSelections[idx];
+                const isOpen = (openDropdownIndex === idx);
+                
+                let triggerContent = `<span style="font-size:0.8rem; opacity:0.7">Select...</span> <span>▾</span>`;
+                let triggerClass = 'd20-trigger-btn';
+                let triggerStyle = '';
+                
+                if (currentVal) {
+                    const hue = getHue(currentVal);
+                    triggerClass += ' has-value';
+                    triggerStyle = `background: hsl(${hue}, 80%, 30%); box-shadow: 0 0 10px hsl(${hue}, 80%, 50%);`;
+                    triggerContent = `
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <svg style="width:24px; height:24px; fill:none; stroke:white; stroke-width:2;" viewBox="0 0 100 115">${d20SvgContent}</svg> 
+                        </div> 
+                        <span style="font-size:1.3rem;">${currentVal}</span>`;
+                } else {
+                    triggerContent = `
+                        <div style="display:flex; align-items:center; gap:5px; opacity:0.5;">
+                            <svg style="width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 100 115">${d20SvgContent}</svg> 
+                        </div>
+                        <span>▾</span>
+                    `;
+                }
+
+                let gridHTML = '';
+                for(let i=1; i<=20; i++) {
+                    const hue = getHue(i);
+                    gridHTML += `
+                        <button class="d20-wireframe-btn" style="--hue:${hue}" onclick="selectRoll(${idx}, ${i}); event.stopPropagation();">
+                            <svg viewBox="0 0 100 115">${d20SvgContent}</svg><span>${i}</span>
+                        </button>`;
+                }
+
+                const dropdownClass = isOpen ? 'd20-dropdown open' : 'd20-dropdown';
+
+                container.innerHTML += `
+                    <div class="employee-row">
+                        <div class="row-info">
+                            <span class="emp-name">${p.name}</span>
+                            <span class="emp-stat">Wins: ${p.wins}</span>
+                        </div>
+                        
+                        <div class="roll-actions">
+                            <button class="btn-auto-roll" onclick="autoRoll(${idx})">
+                                <span>⚡ Auto</span>
+                            </button>
+
+                            <div class="d20-select-container">
+                                <button class="${triggerClass}" style="${triggerStyle}" onclick="toggleDropdown(${idx})">
+                                    ${triggerContent}
+                                </button>
+                                <div class="${dropdownClass}">
+                                    ${gridHTML}
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- CALCULATE WINNER ---
+        function saveAndCalculate() {
+            const selectedIndices = Object.keys(currentSelections);
+            if (selectedIndices.length === 0) { alert("Select at least one roll!"); return; }
+            
+            let bestScore = -1;
+            let winnerIndices = [];
+
+            selectedIndices.forEach(idx => {
+                const roll = currentSelections[idx];
+                const score = isLowMode ? (21 - roll) : roll;
+                if (score > bestScore) { bestScore = score; winnerIndices = [idx]; } 
+                else if (score === bestScore) { winnerIndices.push(idx); }
+            });
+
+            if (winnerIndices.length > 1) {
+                const names = winnerIndices.map(i => players[i].name).join(" & ");
+                alert(`⚠️ TIE DETECTED between: ${names}.\nPlease re-roll for them.`);
+                return;
+            }
+
+            const winnerIdx = winnerIndices[0];
+            const winningRoll = currentSelections[winnerIdx];
+            const rollType = isLowMode ? 'low' : 'high';
+
+            players.forEach((p, i) => {
+                if (currentSelections[i]) {
+                    const roll = currentSelections[i];
+                    const currentBestScore = p.bestRoll.type === 'low' ? (21 - p.bestRoll.value) : p.bestRoll.value;
+                    const newScore = isLowMode ? (21 - roll) : roll;
+                    
+                    if (p.bestRoll.value === 0 || newScore > currentBestScore) {
+                        p.bestRoll = { value: roll, type: rollType };
+                    }
+
+                    if (i == winnerIdx) { p.wins++; p.streak = 0; } 
+                    else { p.streak++; }
+                }
+            });
+
+            save();
+            closeRollModal();
+            showWinnerReveal(players[winnerIdx].name, winningRoll, rollType);
+        }
+
+        function showWinnerReveal(name, roll, type) {
+            document.getElementById('revealName').innerText = name;
+            document.getElementById('revealDetails').innerText = `Winning Roll: ${roll} (${type.toUpperCase()})`;
+            document.getElementById('resultModal').classList.add('active');
+        }
+        function closeResultModal() { document.getElementById('resultModal').classList.remove('active'); }
+
+        // --- ADMIN / UTILS ---
+        function toggleSettingsMenu() {
+            const bar = document.getElementById('settingsBar');
+            if (!bar.classList.contains('hidden')) { bar.classList.add('hidden'); return; }
+            if (!isAdmin) {
+                const pass = prompt("Enter Admin Password:");
+                if (pass === "ManageThis") { isAdmin = true; } else { alert("Access Denied."); return; }
+            }
+            bar.classList.remove('hidden');
+        }
+
+        function toggleEditMode() {
+            isEditMode = document.getElementById('editToggle').checked;
+            document.getElementById('addControls').classList.toggle('hidden', !isEditMode);
+            render();
+        }
+        function toggleTestMode() {
+            document.getElementById('testPanel').classList.toggle('hidden', !document.getElementById('testToggle').checked);
+        }
+
+        function addPlayer() {
+            const input = document.getElementById('playerName');
+            if (!input.value.trim()) return;
+            players.push({ name: input.value.trim(), earlyDay: "None", wins: 0, bestRoll: { value: 0, type: 'high' }, streak: 0 });
+            input.value = ''; save();
+        }
+        function updateDropdown(index, value) { players[index].earlyDay = value; save(); }
+        
+        // This function handles the manual "Win" button if Edit mode is active
+        function updateStat(index, type) {
+            if(type === 'win') {
+                players[index].wins++;
+                players[index].streak = 0; // Reset streak on manual win
+                save();
+            }
+        }
+
+        function removePlayer(index) { if (confirm("Remove player?")) { players.splice(index, 1); save(); } }
+        function resetPlayerStats(index) {
+            if(confirm("Reset stats for " + players[index].name + "?")) {
+                players[index].wins = 0; players[index].streak = 0; players[index].bestRoll = { value: 0, type: 'high' }; save();
+            }
+        }
+
+        function removeHistoryItem(index) { if (confirm("Remove entry?")) { history.splice(index, 1); localStorage.setItem('teamHistory', JSON.stringify(history)); render(); } }
+        function randomizeStats() {
+            if(confirm("Randomize stats?")) {
+                players.forEach(p => {
+                    p.wins = Math.floor(Math.random() * 12); p.streak = Math.floor(Math.random() * 6);
+                    p.bestRoll = { value: Math.floor(Math.random() * 20) + 1, type: Math.random() > 0.5 ? 'high' : 'low' };
+                }); save();
+            }
+        }
+        function forceRandomMonthReset() { const m = ["Jan","Feb","Mar","Apr"][Math.floor(Math.random()*4)]; performReset(`${m}-2025`); }
+        function clearHistory() { if(confirm("Clear Hall of Fame?")) { history=[]; localStorage.setItem('teamHistory', JSON.stringify(history)); render(); } }
+
+        // --- RENDER TABLE ---
+        function render() {
+            const body = document.getElementById('boardBody');
+            const hof = document.getElementById('hofList');
+            const actionHeader = document.getElementById('actionHeader');
+
+            // TOGGLE HEADER VISIBILITY
+            if (isEditMode) {
+                actionHeader.classList.remove('hidden');
+            } else {
+                actionHeader.classList.add('hidden');
+            }
+
+            body.innerHTML = '';
+
+            let maxWins = 0, maxStreak = 0;
+            players.forEach(p => { if (p.wins > maxWins) maxWins = p.wins; if (p.streak > maxStreak) maxStreak = p.streak; });
+
+            // Sort
+            players.sort((a, b) => {
+                if (b.wins !== a.wins) return b.wins - a.wins;
+                const scoreA = a.bestRoll.type === 'low' ? (21 - a.bestRoll.value) : a.bestRoll.value;
+                const scoreB = b.bestRoll.type === 'low' ? (21 - b.bestRoll.value) : b.bestRoll.value;
+                return scoreB - scoreA;
+            });
+
+            const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            const days = ["None", "Monday", "Tuesday", "Wednesday", "Thursday"];
+            const lastMonthChamp = history.length > 0 ? history[0].name : null;
+
+            players.forEach((p, i) => {
+                const rankDisplay = (i === 0 && p.wins > 0) ? '👑' : (i + 1);
+                const disabledAttr = isEditMode ? '' : 'disabled';
+                const options = days.map(d => `<option value="${d}" ${p.earlyDay === d ? 'selected' : ''}>${d}</option>`).join('');
+                
+                let dayStyle = (p.earlyDay === currentDay) ? "border: 1px solid var(--accent-green); box-shadow: 0 0 8px rgba(74, 222, 128, 0.4); color: var(--accent-green); font-weight:bold;" : "";
+                
+                // CONDITIONAL ACTION BUTTONS
+                let actionCell = "";
+                if (isEditMode) {
+                    actionCell = `
+                        <td>
+                            <button class="btn-metric" onclick="updateStat(${i}, 'win')">Win</button>
+                            <button class="delete-btn" onclick="removePlayer(${i})">×</button>
+                            <button class="reset-btn" onclick="resetPlayerStats(${i})">↺</button>
+                        </td>
+                    `;
+                }
+
+                const crown = (p.name === lastMonthChamp) ? `<span class="silver-crown" title="Last Month's Champion">👑</span>` : '';
+
+                // Gradients
+                let wHue = (maxWins > 0 && p.wins > 0) ? (p.wins/maxWins <= 0.5 ? 210-(90*(p.wins/maxWins*2)) : 120-(75*((p.wins/maxWins-0.5)*2))) : 210;
+                let winsStyle = (p.wins > 0) ? `color: hsl(${wHue}, 90%, 60%); text-shadow: 0 0 10px hsl(${wHue}, 90%, 30%); font-size: 1.2rem;` : `color: #64748b;`;
+                
+                let sHue = (maxStreak > 0) ? 60 - (60 * (p.streak/maxStreak)) : 60;
+                let streakStyle = (p.streak > 0) ? `color: hsl(${sHue}, 95%, 60%); font-weight: bold; text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);` : `color: #94a3b8; opacity: 0.5;`;
+
+                // Roll
+                let rollDisplay = "-", rollStyle = "color: #64748b";
+                if (p.bestRoll.value > 0) {
+                    let rVal = p.bestRoll.value, rType = p.bestRoll.type;
+                    let rScore = rType === 'high' ? rVal : (21 - rVal);
+                    let rHue = (rScore <= 10) ? 350 - (140 * ((rScore-1)/9)) : 210 - (165 * ((rScore-11)/9));
+                    let glow = rScore === 20 ? `text-shadow: 0 0 10px var(--accent-gold);` : ``;
+                    rollDisplay = `${rVal} <span style="font-size:0.7em; opacity:0.8">(${rType === 'high' ? 'High' : 'Low'})</span>`;
+                    rollStyle = `color: hsl(${rHue}, 85%, 60%); font-weight: bold; ${glow}`;
+                }
+
+                body.innerHTML += `
+                    <tr>
+                        <td style="text-align:center">${rankDisplay}</td>
+                        <td><strong>${p.name}</strong>${crown}</td>
+                        <td><select style="${dayStyle}" ${disabledAttr} onchange="updateDropdown(${i}, this.value)">${options}</select></td>
+                        <td class="stat-val" style="${winsStyle}">${p.wins}</td>
+                        <td class="stat-val" style="${rollStyle}">${rollDisplay}</td>
+                        <td class="stat-val" style="${streakStyle}">${p.streak}</td>
+                        ${actionCell}
+                    </tr>`;
+            });
+
+            hof.innerHTML = history.length ? history.map((h, i) => {
+                const dBtn = isEditMode ? `<button class="card-delete-btn" onclick="removeHistoryItem(${i})">×</button>` : '';
+                return `<div class="relic-card">${dBtn}<div class="relic-date">${h.date}</div><div class="relic-name">${h.name}</div><div class="relic-score">🏆 ${h.score} Wins</div></div>`;
+            }).join('') : '<p style="text-align:center; color:#475569; grid-column:1/-1">No legends recorded yet.</p>';
+        }
+
+        checkMonthlyReset();
+        render();
+    </script>
+</body>
+</html>
