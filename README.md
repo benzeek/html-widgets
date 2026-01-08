@@ -8,4 +8,4 @@ I made a stupid [Break Timer](https://benzeek.github.io/html-widgets/break-timer
 
 ## Scoreboard
 
-I made a stupid [Scoreboard](https://benzeek.github.io/html-widgets/countdown.html) that helps us track dicerolls.
+I made a stupid [Scoreboard](https://benzeek.github.io/html-widgets/scoreboard.html) that helps us track dicerolls.
